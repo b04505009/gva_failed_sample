@@ -1,0 +1,56 @@
+# ==============================================================================
+# Copyright (C) 2018-2020 Intel Corporation
+#
+# SPDX-License-Identifier: MIT
+# ==============================================================================
+
+cmake_minimum_required(VERSION 3.1)
+
+set (TARGET_NAME "demo")
+
+find_package(OpenCV 4.5 REQUIRED core imgproc imgcodecs)
+find_package(PkgConfig REQUIRED)
+find_package(Threads)
+
+pkg_check_modules(GSTREAMER gstreamer-1.0>=1.14 REQUIRED)
+pkg_check_modules(GLIB2 glib-2.0 REQUIRED)
+pkg_check_modules(GSTVIDEO gstreamer-video-1.0>=1.14 REQUIRED)
+
+# use pkg-config if sample builds as standalone. Otherwise vars DLSTREAMER_INCLUDE_DIRS/etc set by top level cmake
+if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
+    pkg_check_modules(DLSTREAMER dl-streamer REQUIRED)
+endif()
+
+file (GLOB MAIN_SRC main.cpp)
+
+file (GLOB MAIN_HEADERS *.h)
+
+add_executable(${TARGET_NAME} ${MAIN_SRC} ${MAIN_HEADERS})
+
+set_target_properties(${TARGET_NAME} PROPERTIES CMAKE_CXX_STANDARD 14)
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+
+set(CMAKE_BUILD_TYPE Debug)
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -std=c++11 -pthread")
+
+target_include_directories(${TARGET_NAME}
+PRIVATE
+        ${GSTVIDEO_INCLUDE_DIRS}
+        ${GSTREAMER_INCLUDE_DIRS}
+        ${GLIB2_INCLUDE_DIRS}
+        ${DLSTREAMER_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/json
+)
+
+
+target_link_libraries(${TARGET_NAME}
+PRIVATE
+        ${GSTVIDEO_LIBRARIES}
+        ${OpenCV_LIBS}
+        ${GLIB2_LIBRARIES}
+        ${GSTREAMER_LIBRARIES}
+)
+
+
+
